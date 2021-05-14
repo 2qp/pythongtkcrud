@@ -1,2 +1,2 @@
 # pythongtkcrud
-simple python gtk 3 create read update delete script using Sqlite3
+simple python gtk 3 create read update delete GUI script using Sqlite3
