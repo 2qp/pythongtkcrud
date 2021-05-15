@@ -91,8 +91,9 @@ class WB_Window(gtk.Window):
         hbox.add(button_add)
         button_add.connect("clicked", self.add_btn_clicked)
         
-        button_ro = gtk.Button(label="Update")
-        hbox.add(button_ro)
+        button_update = gtk.Button(label="Update")
+        hbox.add(button_update)
+        button_update.connect("clicked", self.update_btn_clicked)
         
         button_remove = gtk.Button(label="Remove")
         hbox.add(button_remove)
@@ -121,6 +122,14 @@ class WB_Window(gtk.Window):
 		conn.commit()
 		print(get_ids)
 		
+    def update_btn_clicked(self, button_update):
+        get_ids = self.ids
+        get_user = self.entry.get_text()
+        get_plate = self.entry2.get_text()
+        query = ''' UPDATE NP SET user = ? , plate = ? WHERE id = ?'''
+        data_tuple = (get_user, get_plate, get_ids)
+        c.execute(query, data_tuple)
+        conn.commit()
 
 
 win = WB_Window()
