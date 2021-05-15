@@ -9,17 +9,10 @@ conn = sqlite3.connect('stu3.db')
 c = conn.cursor()
 
 
-             
-c.execute("select * from NP")
-
-software_list = c.fetchall()
-
-
-
 
 class WB_Window(gtk.Window):
     def __init__(self):
-        gtk.Window.__init__(self, title="Write Blocker")
+        gtk.Window.__init__(self, title="CRUD")
         self.set_border_width(10)
         self.set_position(gtk.WindowPosition.CENTER)
         self.set_default_size(300, 450)
@@ -28,10 +21,15 @@ class WB_Window(gtk.Window):
         self.outter_box = gtk.VBox(False,spacing=10)
         self.add(self.outter_box)
         
-        self.software_liststore = gtk.ListStore(int, str, str)
+        
+        c.execute("select * from NP")
+        
+        software_list = c.fetchall()
+
+        software_liststore = gtk.ListStore(int, str, str)
         for software_ref in software_list:
-            self.software_liststore.append(list(software_ref))
-        tree = gtk.TreeView(self.software_liststore)
+            software_liststore.append(list(software_ref))
+        tree = gtk.TreeView(software_liststore)
         
         #SELECTION EMITTER START#
         
@@ -43,13 +41,12 @@ class WB_Window(gtk.Window):
 			self.ids = model.get_value(tree_iter,0)
 			value = model.get_value(tree_iter,1)
 			value2 = model.get_value(tree_iter,2)
-			#print value
-			#print (self.ids)
-			
+
 			self.entry.set_text(value)
 			self.entry2.set_text(value2)
 			
 		return self.ids
+		
         
         tree_selection = tree.get_selection()
         tree_selection.connect("changed", onSelectionChanged)
@@ -102,6 +99,11 @@ class WB_Window(gtk.Window):
         button_quit = gtk.Button(label="Quit",stock=gtk.STOCK_QUIT)
         button_quit.show()
         hbox.add(button_quit)
+        button_quit.connect("clicked", self.on_close_clicked)
+        
+        button_refresh = gtk.Button(label="Refresh")
+        #hbox.add(button_refresh)
+        #button_refresh.connect("clicked", self.refresh_btn_clicked)
         
         
     def add_btn_clicked(self, button_add):
@@ -130,7 +132,14 @@ class WB_Window(gtk.Window):
         data_tuple = (get_user, get_plate, get_ids)
         c.execute(query, data_tuple)
         conn.commit()
-
+        
+    def on_close_clicked(self, button_quit):
+        print("Closing CRUD")
+        gtk.main_quit()
+        
+    #def refresh_btn_clicked(self, button_quit):
+		
+		#conn.commit()
 
 win = WB_Window()
 win.connect("delete-event",gtk.main_quit)
