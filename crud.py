@@ -21,47 +21,26 @@ class WB_Window(gtk.Window):
         self.outter_box = gtk.VBox(False,spacing=10)
         self.add(self.outter_box)
         
-        
         c.execute("select * from NP")
-        
         software_list = c.fetchall()
-
-        software_liststore = gtk.ListStore(int, str, str)
+        self.software_liststore = gtk.ListStore(int, str, str)
         for software_ref in software_list:
-            software_liststore.append(list(software_ref))
-        tree = gtk.TreeView(software_liststore)
-        
-        #SELECTION EMITTER START#
-        
-	def onSelectionChanged(tree_selection) :
-		(model, pathlist) = tree_selection.get_selected_rows()
-		for path in pathlist :
-			tree_iter = model.get_iter(path)
-			
-			self.ids = model.get_value(tree_iter,0)
-			value = model.get_value(tree_iter,1)
-			value2 = model.get_value(tree_iter,2)
-
-			self.entry.set_text(value)
-			self.entry2.set_text(value2)
-			
-		return self.ids
+            self.software_liststore.append(list(software_ref))
 		
-        
-        tree_selection = tree.get_selection()
-        tree_selection.connect("changed", onSelectionChanged)
-        #SELECTION EMITTER ENDS#
+        self.tree = gtk.TreeView(self.software_liststore)
+        self.tree_selection = self.tree.get_selection()
+        self.tree_selection.connect("changed", self.onSelectionChanged)
         
         for i, column_title in enumerate(["ID", "User", "Plate"]):
             renderer = gtk.CellRendererText()
             column = gtk.TreeViewColumn(column_title, renderer, text=i)
-            tree.append_column(column)
+            self.tree.append_column(column)
 
         self.scrollable_treelist = gtk.ScrolledWindow()
         self.scrollable_treelist.set_vexpand(True)
         self.scrollable_treelist.set_hexpand(True)
         self.outter_box.pack_start(self.scrollable_treelist, False, True, 0)
-        self.scrollable_treelist.add(tree)
+        self.scrollable_treelist.add(self.tree)
         
         
         hbox2 = gtk.Box(gtk.Orientation.HORIZONTAL)
@@ -72,9 +51,6 @@ class WB_Window(gtk.Window):
         self.entry2 = gtk.Entry()
         hbox2.add(self.entry)
         hbox2.add(self.entry2)
-        
-          
-        
 
         hbox = gtk.ButtonBox.new(gtk.Orientation.HORIZONTAL)
         hbox.set_layout(gtk.ButtonBoxStyle.CENTER) 
@@ -102,8 +78,22 @@ class WB_Window(gtk.Window):
         button_quit.connect("clicked", self.on_close_clicked)
         
         button_refresh = gtk.Button(label="Refresh")
-        #hbox.add(button_refresh)
-        #button_refresh.connect("clicked", self.refresh_btn_clicked)
+        hbox.add(button_refresh)
+        button_refresh.connect("clicked", self.refresh_btn_clicked)
+        
+
+    def onSelectionChanged(self, tree_selection) :
+        (model, pathlist) = self.tree_selection.get_selected_rows()
+        for path in pathlist:
+           tree_iter = model.get_iter(path)
+           self.ids = model.get_value(tree_iter,0)
+           value = model.get_value(tree_iter,1)
+           value2 = model.get_value(tree_iter,2)
+           self.entry.set_text(value)
+           self.entry2.set_text(value2)
+        #return self.ids
+		
+
         
         
     def add_btn_clicked(self, button_add):
@@ -137,9 +127,16 @@ class WB_Window(gtk.Window):
         print("Closing CRUD")
         gtk.main_quit()
         
-    #def refresh_btn_clicked(self, button_quit):
+    def refresh_btn_clicked(self, button_quit):
 		
-		#conn.commit()
+        #self.software_liststore.clear()
+        c.execute("select * from NP")
+        software_list = c.fetchall()
+        self.software_liststore = gtk.ListStore(int, str, str)
+        for software_ref in software_list:
+            self.software_liststore.append(list(software_ref))
+        
+        self.tree.set_model(self.software_liststore)
 
 win = WB_Window()
 win.connect("delete-event",gtk.main_quit)
