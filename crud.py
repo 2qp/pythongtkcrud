@@ -9,7 +9,6 @@ conn = sqlite3.connect('stu3.db')
 c = conn.cursor()
 
 
-
              
 c.execute("select * from NP")
 
@@ -29,7 +28,7 @@ class WB_Window(gtk.Window):
         self.outter_box = gtk.VBox(False,spacing=10)
         self.add(self.outter_box)
         
-        self.software_liststore = gtk.ListStore(str, str, str)
+        self.software_liststore = gtk.ListStore(int, str, str)
         for software_ref in software_list:
             self.software_liststore.append(list(software_ref))
         tree = gtk.TreeView(self.software_liststore)
@@ -40,17 +39,23 @@ class WB_Window(gtk.Window):
 		(model, pathlist) = tree_selection.get_selected_rows()
 		for path in pathlist :
 			tree_iter = model.get_iter(path)
-			value = model.get_value(tree_iter,0)
-			value2 = model.get_value(tree_iter,1)
-			print value
+			
+			self.ids = model.get_value(tree_iter,0)
+			value = model.get_value(tree_iter,1)
+			value2 = model.get_value(tree_iter,2)
+			#print value
+			#print (self.ids)
+			
 			self.entry.set_text(value)
 			self.entry2.set_text(value2)
+			
+		return self.ids
         
         tree_selection = tree.get_selection()
         tree_selection.connect("changed", onSelectionChanged)
         #SELECTION EMITTER ENDS#
         
-        for i, column_title in enumerate(["User", "License Plate", ""]):
+        for i, column_title in enumerate(["ID", "User", "Plate"]):
             renderer = gtk.CellRendererText()
             column = gtk.TreeViewColumn(column_title, renderer, text=i)
             tree.append_column(column)
@@ -65,6 +70,7 @@ class WB_Window(gtk.Window):
         hbox2 = gtk.Box(gtk.Orientation.HORIZONTAL)
         self.outter_box.pack_start(hbox2, False, False, 0)
         #hbox2.set_layout(gtk.CENTER)
+        self.entryid = gtk.Entry()
         self.entry = gtk.Entry()
         self.entry2 = gtk.Entry()
         hbox2.add(self.entry)
@@ -81,26 +87,41 @@ class WB_Window(gtk.Window):
         # Add CSS "linked" class
         hbox.get_style_context().add_class("linked")
         
-        button_mount = gtk.Button(label="Add")
-        hbox.add(button_mount)
+        button_add = gtk.Button(label="Add")
+        hbox.add(button_add)
+        button_add.connect("clicked", self.add_btn_clicked)
         
         button_ro = gtk.Button(label="Update")
         hbox.add(button_ro)
         
-        button_rw = gtk.Button(label="Remove")
-        hbox.add(button_rw)
+        button_remove = gtk.Button(label="Remove")
+        hbox.add(button_remove)
+        button_remove.connect("clicked", self.remove_btn_clicked)
         
         button_quit = gtk.Button(label="Quit",stock=gtk.STOCK_QUIT)
         button_quit.show()
         hbox.add(button_quit)
         
         
+    def add_btn_clicked(self, button_add):
+        get_user = self.entry.get_text()
+        get_plate = self.entry2.get_text()
+        data_input = '''INSERT INTO NP(user,plate) VALUES(?,?);'''
 
+        data_tuple = (get_user, get_plate)
+        c.execute(data_input, data_tuple)
+        conn.commit()
+        
+    def remove_btn_clicked(self, button_remove):
+		
+		get_ids = self.ids
+		
+		query = '''DELETE from NP where id = ?'''
+		c.execute(query, (get_ids,))
+		conn.commit()
+		print(get_ids)
+		
 
-        
-        
-        
-        
 
 win = WB_Window()
 win.connect("delete-event",gtk.main_quit)
